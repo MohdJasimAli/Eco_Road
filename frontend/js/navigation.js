@@ -611,25 +611,25 @@ const Navigation = (() => {
       modeEl.textContent = `${modeIcon} · ${routeBadge}`;
     }
 
-    // Determine instantaneous navigation AQI without overwriting route-level metrics
+    // Determine instantaneous navigation AQI along the active road corridor segment
     let currentAqi = null;
     let currentColor = null;
     let currentCat = null;
     let currentStation = null;
     let currentDataType = null;
 
-    if (_navCurrentAqi != null) {
-      currentAqi = _navCurrentAqi;
-      currentColor = _navCurrentColor;
-      currentCat = _navCurrentCat;
-      currentStation = _navCurrentStation;
-      currentDataType = _navCurrentDataType;
-    } else if (activeSeg && activeSeg.aqi != null && !_navIsUnavailable) {
+    if (activeSeg && activeSeg.aqi != null && !_navIsUnavailable) {
       currentAqi = activeSeg.aqi;
       currentColor = activeSeg.color || _route.aqi_color;
       currentCat = activeSeg.category || activeSeg.bucket || _route.aqi_category || _route.aqi_bucket;
       currentStation = activeSeg.station || null;
       currentDataType = activeSeg.data_type || 'modeled';
+    } else if (_navCurrentAqi != null) {
+      currentAqi = _navCurrentAqi;
+      currentColor = _navCurrentColor;
+      currentCat = _navCurrentCat;
+      currentStation = _navCurrentStation;
+      currentDataType = _navCurrentDataType;
     }
 
     if (aqiEl) {
@@ -666,6 +666,25 @@ const Navigation = (() => {
       doseEl.textContent = `Inhaled PM2.5: ${_accumulatedDose.toFixed(2)} µg`;
       doseEl.title = 'Estimated Inhaled PM2.5 Mass (not absorbed lung dose)';
     }
+
+    // Synchronize top header bar AQI pill with current navigation position
+    const topText = document.getElementById('header-aqi-text');
+    const topDot  = document.getElementById('header-aqi-dot');
+    const topPill = document.getElementById('header-aqi-pill');
+    if (topText && topDot && currentAqi != null) {
+      const catMap = {
+        'Unhealthy for Sensitive Groups': 'Sensitive',
+        'Very Unhealthy': 'Very Poor',
+        'Hazardous': 'Severe'
+      };
+      const displayCat = catMap[currentCat] || currentCat || '';
+      topText.textContent = `AQI ${Math.round(currentAqi)}${displayCat ? ' · ' + displayCat : ''}`;
+      topText.style.color = currentColor || _route.aqi_color;
+      topDot.style.background = currentColor || _route.aqi_color;
+      if (topPill) {
+        topPill.style.borderColor = (currentColor || _route.aqi_color) + '44';
+      }
+    }
   }
 
   // ── Throttled Live AQI Fetch Pipeline for Navigation ─────────
@@ -681,15 +700,15 @@ const Navigation = (() => {
     if (_navLastFetchLat == null) {
       shouldFetch = true;
     } else if (isSim) {
-      // In demo simulation: trigger if moved > 250m AND at least 1500ms elapsed since last request
-      if (dist > 250 && elapsedMs >= 1500) {
+      // In demo simulation: trigger if moved > 350m AND at least 2000ms elapsed since last request
+      if (dist > 350 && elapsedMs >= 2000) {
         shouldFetch = true;
       } else if (elapsedMs > 60000) {
         shouldFetch = true;
       }
     } else {
-      // In live GPS: trigger if moved > 250m OR elapsed > 60s
-      if (dist > 250 || elapsedMs > 60000) {
+      // In live GPS: trigger if moved > 250m OR elapsed > 30s
+      if (dist > 250 || elapsedMs > 30000) {
         shouldFetch = true;
       }
     }
@@ -707,13 +726,13 @@ const Navigation = (() => {
   async function _fetchNavPositionAQI(lat, lng, reqId) {
     try {
       const res = await fetch(Config.ENDPOINTS.liveAqi(lat, lng));
-      if (!_active || reqId !== _navAqiRequestId) return;
+      if (!_active) return;
       if (!res.ok) {
         if (_navCurrentAqi == null) _navIsUnavailable = true;
         return;
       }
       const data = await res.json();
-      if (!_active || reqId !== _navAqiRequestId) return;
+      if (!_active) return;
 
       if (data && data.aqi != null) {
         _navCurrentAqi       = data.aqi;
@@ -742,12 +761,12 @@ const Navigation = (() => {
         }
       }
     } catch (_) {
-      if (!_active || reqId !== _navAqiRequestId) return;
+      if (!_active) return;
       if (_navCurrentAqi == null) {
         _navIsUnavailable = true;
       }
     } finally {
-      if (_active && reqId === _navAqiRequestId) {
+      if (_active) {
         const seg = _findActiveSegment(_userLat, _userLng);
         _updateHUD(seg);
       }
