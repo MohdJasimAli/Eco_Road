@@ -47,29 +47,34 @@ html,body { width:100%; height:100%; overflow:hidden;
   border:1px solid rgba(255,255,255,.14);
   border-radius:28px;
   box-shadow:0 8px 30px rgba(0,0,0,.45);
-  display:flex; align-items:center; padding:0 14px; gap:8px; z-index:1000;
+  display:flex; align-items:center; padding:0 12px; gap:8px; z-index:1000;
   transition:all .25s ease;
+  overflow:hidden;
 }
 @media (min-width: 769px) {
   #app-header {
-    left:16px; width:410px; right:auto;
+    left:16px; right:auto;
+    width:auto;
+    min-width:410px;
+    max-width:min(calc(100vw - 32px), 640px);
     border-radius:14px;
   }
 }
-.header-left  { flex-shrink:0; }
-.header-center{ flex:1; display:flex; align-items:center; gap:6px; overflow:hidden; }
-.header-right { flex-shrink:0; display:flex; align-items:center; gap:6px; }
+.header-left  { flex-shrink:0; display:flex; align-items:center; }
+.header-center{ flex:1; display:flex; align-items:center; gap:6px; overflow:hidden; min-width:0; }
+.header-right { flex-shrink:0; display:flex; align-items:center; gap:6px; min-width:0; }
 
 .logo {
   display:flex; align-items:center; gap:6px;
   font-size:15px; font-weight:700; letter-spacing:-.4px;
   background:linear-gradient(135deg,var(--accent),var(--green));
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  user-select:none;
 }
 
-.mini-orig { font-size:11.5px; color:var(--blue); font-weight:600; }
+.mini-orig { font-size:11.5px; color:var(--blue); font-weight:600; white-space:nowrap; }
 .mini-orig::before { content:'● '; }
-.mini-arr  { color:var(--text2); font-size:12px; }
+.mini-arr  { color:var(--text2); font-size:12px; flex-shrink:0; }
 #mini-dest { font-size:11.5px; color:var(--green); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .aqi-pill {
@@ -77,17 +82,22 @@ html,body { width:100%; height:100%; overflow:hidden;
   background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
   border-radius:20px; padding:4px 9px; font-size:11px;
   font-weight:600; white-space:nowrap; transition:all .2s;
+  max-width:185px; flex-shrink:1; min-width:0; overflow:hidden;
 }
 .aqi-dot {
   width:7px; height:7px; border-radius:50%;
-  background:var(--text2);
+  background:var(--text2); flex-shrink:0;
   animation:aqi-pulse 2.5s ease-in-out infinite;
+}
+#header-aqi-text {
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block;
 }
 @keyframes aqi-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
 
 .model-badge {
   width:26px; height:26px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
   border-radius:8px; display:grid; place-items:center; font-size:11px; cursor:pointer;
+  flex-shrink:0;
 }
 .model-badge.loaded { color:var(--green); }
 
@@ -637,7 +647,7 @@ html,body { width:100%; height:100%; overflow:hidden;
   background: var(--surface2); border: 1.5px solid rgba(34,197,94,.4);
   border-radius: 20px; padding: 4px 10px; font-size: 11px;
   font-weight: 600; cursor: pointer; transition: all .2s;
-  color: var(--green);
+  color: var(--green); white-space: nowrap; flex-shrink: 0;
 }
 .health-mode-pill:hover { background: var(--surface3); }
 .health-mode-pill.asthma-active {
@@ -1155,17 +1165,21 @@ html,body { width:100%; height:100%; overflow:hidden;
     gap: 6px;
   }
   .logo span {
-    font-size: 14.5px;
+    font-size: 13.5px;
   }
   .model-badge {
     display: none; /* Hide non-critical badge on narrow mobile to keep header clean */
   }
   .aqi-pill {
-    padding: 4px 8px;
+    padding: 3px 8px;
     font-size: 10.5px;
+    max-width: 135px;
+  }
+  #header-aqi-text {
+    max-width: 95px;
   }
   .health-mode-pill {
-    padding: 4px 8px;
+    padding: 3px 8px;
     font-size: 10.5px;
   }
   .route-toggle {
@@ -1219,10 +1233,32 @@ html,body { width:100%; height:100%; overflow:hidden;
   }
 }
 
-/* 3. Ultra-Compact Screen Adaptations (< 360px, e.g. iPhone SE 1st gen, small Androids) */
+/* 3. Small Smart Phones (< 400px, e.g. iPhone 12/13 mini, standard Androids) */
+@media (max-width: 400px) {
+  .logo span {
+    display: none; /* Show only leaf logo icon to preserve space */
+  }
+  .aqi-pill {
+    max-width: 125px;
+  }
+  #header-aqi-text {
+    max-width: 85px;
+  }
+}
+
+/* 4. Ultra-Compact Screen Adaptations (< 360px, e.g. iPhone SE 1st gen, small Androids) */
 @media (max-width: 360px) {
   #health-mode-text {
     display: none; /* Show only emoji 💚 on ultra-narrow screens */
+  }
+  .health-mode-pill {
+    padding: 3px 6px;
+  }
+  .aqi-pill {
+    max-width: 105px;
+  }
+  #header-aqi-text {
+    max-width: 70px;
   }
   .route-stats {
     grid-template-columns: repeat(2, 1fr) !important;

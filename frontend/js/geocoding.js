@@ -588,8 +588,15 @@ const Geocoding = (() => {
       const pill = document.getElementById('header-aqi-pill');
       if (dot && text && pill) {
         dot.style.background = d.aqi_color;
-        const cat = d.aqi_category || d.aqi_bucket;
-        text.textContent = `AQI ${Math.round(d.aqi)} · ${cat}`;
+        const cat = d.aqi_category || d.aqi_bucket || '';
+        // Abbreviate long categories for clean header display
+        const catMap = {
+          'Unhealthy for Sensitive Groups': 'Sensitive',
+          'Very Unhealthy': 'Very Poor',
+          'Hazardous': 'Severe'
+        };
+        const displayCat = catMap[cat] || cat;
+        text.textContent = `AQI ${Math.round(d.aqi)} · ${displayCat}`;
         text.style.color = d.aqi_color;
         pill.style.borderColor = d.aqi_color + '44';
         const typeNote = d.data_type === 'observed' ? 'Physical Station Observation' : 'Atmospheric Model (~11 km grid)';
