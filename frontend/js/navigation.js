@@ -204,13 +204,23 @@ const Navigation = (() => {
       }
     }
 
+    // Enter navigation mode: activate body class to suppress non-nav UI elements
+    document.body.classList.add('navigation-active');
+
     // Show Google Maps navigation overlay
     const overlay = document.getElementById('nav-overlay');
     if (overlay) overlay.style.display = 'block';
 
-    // Hide search sheet
+    // Hide search sheet and ensure steps panel starts closed
     const sheet = document.getElementById('search-sheet');
-    if (sheet) sheet.classList.add('sheet-hidden');
+    if (sheet) {
+      sheet.classList.add('sheet-hidden');
+      sheet.style.display = 'none';
+    }
+
+    _stepsOpen = false;
+    const stepsPanel = document.getElementById('nav-steps-panel');
+    if (stepsPanel) stepsPanel.classList.remove('open');
 
     const activeSeg = _findActiveSegment(_userLat, _userLng);
     if (activeSeg && activeSeg.aqi != null) {
@@ -378,19 +388,35 @@ const Navigation = (() => {
     _isSimulating = false;
     if (_synth) _synth.cancel();
 
+    document.body.classList.remove('navigation-active');
+
     const overlay = document.getElementById('nav-overlay');
     if (overlay) overlay.style.display = 'none';
 
     const alertBanner = document.getElementById('nav-hotspot-alert');
     if (alertBanner) alertBanner.style.display = 'none';
 
+    _stepsOpen = false;
+    const stepsPanel = document.getElementById('nav-steps-panel');
+    if (stepsPanel) stepsPanel.classList.remove('open');
+
     const sheet = document.getElementById('search-sheet');
     if (sheet) {
+      sheet.style.display = '';
       sheet.classList.remove('sheet-hidden');
       if (typeof BottomSheet !== 'undefined') {
         BottomSheet.snapTo('half');
       }
     }
+
+    const appHdr = document.getElementById('app-header');
+    if (appHdr) appHdr.style.display = '';
+
+    const mapCtrl = document.getElementById('map-floating-controls');
+    if (mapCtrl) mapCtrl.style.display = '';
+
+    const aqiLeg = document.getElementById('aqi-legend');
+    if (aqiLeg) aqiLeg.style.display = '';
 
     const recentreBtn = document.getElementById('recentre-btn');
     if (recentreBtn) recentreBtn.classList.remove('visible');

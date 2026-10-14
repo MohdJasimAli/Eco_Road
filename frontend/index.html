@@ -277,6 +277,7 @@
       <div id="nav-road-bar">Road Pathway</div>
     </div>
     <div id="nav-dist-badge">—</div>
+    <button id="nav-top-exit-btn" onclick="Navigation.stop()" title="Exit Navigation" aria-label="Exit Navigation">✕</button>
   </div>
 
   <!-- 2. "Then →" secondary preview bar -->
@@ -337,7 +338,13 @@
 
   <!-- 6. Step list panel (pull-up sheet) -->
   <div id="nav-steps-panel">
-    <div class="steps-handle" onclick="Navigation.toggleSteps()"></div>
+    <div class="steps-panel-header">
+      <div class="steps-handle" onclick="Navigation.toggleSteps()" title="Toggle directions"></div>
+      <div class="steps-title-row">
+        <span class="steps-title-text">Turn-by-Turn Directions</span>
+        <button class="steps-close-icon-btn" onclick="Navigation.toggleSteps()" title="Close directions">✕</button>
+      </div>
+    </div>
     <div id="nav-steps-list"></div>
   </div>
 </div>
