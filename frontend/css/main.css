@@ -34,59 +34,71 @@ html,body { width:100%; height:100%; overflow:hidden;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none; }
 
-/* ── Header ────────────────────────────────── */
+/* ── Floating Header (Google Maps Style) ─────── */
 #app-header {
-  position:fixed; top:0; left:0; right:0;
-  height:calc(var(--hdr) + var(--sat));
-  padding-top:var(--sat);
-  padding-left:max(14px, var(--sal));
-  padding-right:max(14px, var(--sar));
-  background:var(--surface); border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:10px; z-index:1000;
+  position:fixed;
+  top:max(10px, calc(6px + var(--sat)));
+  left:max(12px, var(--sal));
+  right:max(12px, var(--sar));
+  height:48px;
+  background:rgba(22, 27, 34, 0.90);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:28px;
+  box-shadow:0 8px 30px rgba(0,0,0,.45);
+  display:flex; align-items:center; padding:0 14px; gap:8px; z-index:1000;
+  transition:all .25s ease;
+}
+@media (min-width: 769px) {
+  #app-header {
+    left:16px; width:410px; right:auto;
+    border-radius:14px;
+  }
 }
 .header-left  { flex-shrink:0; }
 .header-center{ flex:1; display:flex; align-items:center; gap:6px; overflow:hidden; }
-.header-right { flex-shrink:0; display:flex; align-items:center; gap:8px; }
+.header-right { flex-shrink:0; display:flex; align-items:center; gap:6px; }
 
 .logo {
-  display:flex; align-items:center; gap:7px;
-  font-size:16px; font-weight:700; letter-spacing:-.5px;
+  display:flex; align-items:center; gap:6px;
+  font-size:15px; font-weight:700; letter-spacing:-.4px;
   background:linear-gradient(135deg,var(--accent),var(--green));
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
 }
 
-.mini-orig { font-size:12px; color:var(--blue); }
+.mini-orig { font-size:11.5px; color:var(--blue); font-weight:600; }
 .mini-orig::before { content:'● '; }
-.mini-arr  { color:var(--text2); }
-#mini-dest { font-size:12px; color:var(--text2); }
+.mini-arr  { color:var(--text2); font-size:12px; }
+#mini-dest { font-size:11.5px; color:var(--green); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .aqi-pill {
   display:flex; align-items:center; gap:6px;
-  background:var(--surface2); border:1px solid var(--border);
-  border-radius:20px; padding:4px 10px; font-size:11px;
-  font-weight:500; white-space:nowrap; transition:border-color .3s;
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px; padding:4px 9px; font-size:11px;
+  font-weight:600; white-space:nowrap; transition:all .2s;
 }
 .aqi-dot {
-  width:8px; height:8px; border-radius:50%;
+  width:7px; height:7px; border-radius:50%;
   background:var(--text2);
   animation:aqi-pulse 2.5s ease-in-out infinite;
 }
 @keyframes aqi-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
 
 .model-badge {
-  width:28px; height:28px; background:var(--surface2); border:1px solid var(--border);
-  border-radius:8px; display:grid; place-items:center; font-size:12px; cursor:pointer;
+  width:26px; height:26px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px; display:grid; place-items:center; font-size:11px; cursor:pointer;
 }
 .model-badge.loaded { color:var(--green); }
 
-/* ── Map ───────────────────────────────────── */
+/* ── Full-Screen Map (Edge-to-Edge) ────────── */
 #map {
-  position:fixed; top:calc(var(--hdr) + var(--sat)); left:0; right:0; bottom:0; z-index:1;
+  position:fixed; top:0; left:0; right:0; bottom:0; z-index:1;
 }
 .leaflet-tile-pane { filter:none; }
-.leaflet-control-zoom { border:1px solid var(--border)!important; border-radius:var(--r-sm)!important; overflow:hidden; }
-.leaflet-control-zoom a { background:var(--surface)!important; color:var(--text)!important; border-color:var(--border)!important; }
-.leaflet-control-zoom a:hover { background:var(--surface2)!important; }
+.leaflet-control-zoom {
+  display: none !important; /* Minimalist clean map: use natural pinch-to-zoom */
+}
 
 /* ── User GPS dot + heading cone ───────────── */
 .user-dot-wrap {
@@ -356,17 +368,18 @@ html,body { width:100%; height:100%; overflow:hidden;
 .route-aqi-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
 
 .go-btn {
-  margin:0; width:100%; padding:14px 20px;
+  margin:0; width:100%; padding:15px 24px;
   background:linear-gradient(135deg,#10b981 0%,#059669 100%);
-  color:white; border:none; border-radius:var(--radius);
-  font-family:inherit; font-size:15px; font-weight:700; cursor:pointer;
+  color:white; border:none; border-radius:28px;
+  font-family:inherit; font-size:15.5px; font-weight:700; cursor:pointer;
   display:flex; align-items:center; justify-content:center; gap:10px;
-  box-shadow:0 4px 18px rgba(16,185,129,.45); transition:all .2s cubic-bezier(0.16,1,0.3,1);
+  box-shadow:0 6px 20px rgba(16,185,129,.45); transition:all .2s cubic-bezier(0.16,1,0.3,1);
+  touch-action:manipulation;
 }
 .go-btn:hover  {
-  transform:translateY(-2px);
-  box-shadow:0 6px 22px rgba(16,185,129,.6);
-  filter:brightness(1.06);
+  transform:translateY(-1px);
+  box-shadow:0 8px 26px rgba(16,185,129,.6);
+  filter:brightness(1.08);
 }
 .go-btn:active { transform:scale(.98); }
 .go-btn:disabled {
@@ -422,31 +435,36 @@ html,body { width:100%; height:100%; overflow:hidden;
   position:fixed; inset:0; z-index:2000; pointer-events:none; display:none;
 }
 
-/* 1. Green instruction bar at top */
+/* 1. Green instruction bar at top (Floating Google Maps Turn Pill) */
 #nav-instr-bar {
-  position:absolute; top:0; left:0; right:0;
-  background:var(--nav-green);
-  padding:calc(12px + var(--sat)) max(16px, var(--sar)) 12px max(16px, var(--sal));
+  position:absolute;
+  top:max(10px, calc(6px + var(--sat)));
+  left:max(12px, var(--sal));
+  right:max(12px, var(--sar));
+  background:linear-gradient(135deg, #15803d 0%, #166534 100%);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:22px;
+  padding:12px 16px;
   display:flex; align-items:center; gap:12px;
   pointer-events:all;
-  box-shadow:0 4px 20px rgba(0,0,0,.5);
-  min-height:calc(76px + var(--sat));
+  box-shadow:0 8px 32px rgba(0,0,0,.55);
+  min-height:72px;
 }
 #nav-maneuver-icon {
-  width:48px; height:48px; flex-shrink:0;
-  background:rgba(0,0,0,.2); border-radius:12px;
+  width:46px; height:46px; flex-shrink:0;
+  background:rgba(0,0,0,.25); border-radius:14px;
   display:grid; place-items:center;
   font-size:24px; color:white;
 }
 #nav-instr-center { flex:1; min-width:0; }
 #nav-instruction-text {
-  font-size:18px; font-weight:700; color:white; line-height:1.25;
+  font-size:18px; font-weight:800; color:white; line-height:1.25;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-#nav-road-bar { font-size:12.5px; color:rgba(255,255,255,.75); margin-top:2px; }
+#nav-road-bar { font-size:12px; color:rgba(255,255,255,.85); margin-top:2px; font-weight:500; }
 #nav-dist-badge {
   flex-shrink:0;
-  font-size:18px; font-weight:700; color:white;
+  font-size:19px; font-weight:800; color:white;
   font-family:var(--mono);
   text-align:right; min-width:54px;
 }
@@ -454,11 +472,14 @@ html,body { width:100%; height:100%; overflow:hidden;
 /* 2. Then bar */
 #nav-then-bar {
   position:absolute;
-  top:calc(76px + var(--sat)); left:0; right:0;
+  top:calc(76px + var(--sat));
+  left:max(24px, calc(12px + var(--sal)));
+  right:max(24px, calc(12px + var(--sar)));
   background:rgba(18,90,55,.94);
-  color:rgba(255,255,255,.85);
-  font-size:12.5px; font-weight:500;
-  padding:8px max(16px, var(--sar)) 8px calc(76px + var(--sal));
+  color:rgba(255,255,255,.9);
+  font-size:12px; font-weight:600;
+  border-radius:0 0 16px 16px;
+  padding:6px 16px 8px 68px;
   pointer-events:none;
 }
 
@@ -470,7 +491,8 @@ html,body { width:100%; height:100%; overflow:hidden;
 }
 .nav-fab {
   width:46px; height:46px;
-  background:var(--surface); border:1.5px solid var(--border);
+  background:rgba(22,27,34,0.92); border:1.5px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
   border-radius:50%; display:grid; place-items:center;
   font-size:18px; color:var(--text); cursor:pointer;
   box-shadow:var(--shadow); transition:background .2s;
@@ -485,20 +507,27 @@ html,body { width:100%; height:100%; overflow:hidden;
   100%{ box-shadow:0 0 0 0 rgba(6,182,212,0); }
 }
 
-/* 4. Bottom bar — ETA · dist · AQI */
+/* 4. Bottom bar — ETA · dist · AQI (Google Maps Floating Card) */
 #nav-bottom-bar {
-  position:absolute; bottom:0; left:0; right:0;
-  background:var(--surface);
-  padding:12px max(16px, var(--sar)) max(18px, var(--sab)) max(16px, var(--sal));
+  position:absolute;
+  bottom:max(12px, var(--sab));
+  left:max(12px, var(--sal));
+  right:max(12px, var(--sar));
+  background:rgba(22, 27, 34, 0.94);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:24px;
+  padding:12px 16px;
   display:flex; align-items:center; gap:12px;
   pointer-events:all;
-  box-shadow:0 -4px 24px rgba(0,0,0,.4);
+  box-shadow:0 10px 40px rgba(0,0,0,.6);
 }
 #nav-exit-btn {
-  width:46px; height:46px; border-radius:50%;
-  background:var(--surface2); border:1.5px solid var(--border);
-  color:var(--text); font-size:16px; cursor:pointer;
-  display:grid; place-items:center; transition:background .2s; flex-shrink:0;
+  width:44px; height:44px; border-radius:50%;
+  background:rgba(239,68,68,0.15); border:1.5px solid rgba(239,68,68,0.4);
+  color:#ef4444; font-size:17px; font-weight:800; cursor:pointer;
+  display:grid; place-items:center; transition:all .2s; flex-shrink:0;
   touch-action:manipulation;
 }
 #nav-exit-btn:hover { background:#ef4444; color:white; }
@@ -506,14 +535,14 @@ html,body { width:100%; height:100%; overflow:hidden;
 #nav-hud-center { flex:1; text-align:center; min-width:0; }
 #hud-duration-big {
   font-size:26px; font-weight:800; font-family:var(--mono);
-  color:var(--green);
+  color:#4ade80; line-height:1.1;
 }
-#hud-detail-row { font-size:12.5px; color:var(--text2); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#hud-detail-row { font-size:12.5px; color:var(--text2); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .hud-dot { margin:0 4px; }
 #hud-aqi-row { font-size:11.5px; margin-top:3px; display:flex; gap:4px; justify-content:center; align-items:center; flex-wrap:wrap; }
 
 #nav-route-switch-btn {
-  width:46px; height:46px; border-radius:50%;
+  width:44px; height:44px; border-radius:50%;
   background:var(--surface2); border:1.5px solid var(--border);
   color:var(--text); cursor:pointer;
   display:grid; place-items:center; transition:background .2s; flex-shrink:0;
@@ -523,8 +552,10 @@ html,body { width:100%; height:100%; overflow:hidden;
 
 /* Progress bar just above bottom bar */
 #nav-progress-bar {
-  position:absolute; left:0; right:0; bottom:calc(74px + var(--sab));
-  height:3px; background:var(--border); pointer-events:none;
+  position:absolute; left:max(16px, var(--sal)); right:max(16px, var(--sar));
+  bottom:calc(82px + var(--sab));
+  height:4px; border-radius:2px; background:rgba(255,255,255,0.12); pointer-events:none;
+  overflow:hidden;
 }
 #nav-progress-fill {
   height:100%; background:linear-gradient(90deg,var(--accent),var(--green));
@@ -614,20 +645,25 @@ html,body { width:100%; height:100%; overflow:hidden;
   background: rgba(245,158,11,.1);
 }
 
-/* Travel Mode Selector Bar */
+/* Travel Mode Selector Bar (Google Maps Segmented Control) */
 .travel-mode-bar {
-  display: flex; gap: 8px; margin-bottom: 12px;
+  display: flex; gap: 4px; margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px; border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .mode-pill {
-  flex: 1; padding: 7px 10px; border-radius: 20px;
-  background: var(--surface2); border: 1px solid var(--border);
-  color: var(--text2); font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: all .2s; text-align: center;
+  flex: 1; padding: 8px 12px; border-radius: 20px;
+  background: transparent; border: none;
+  color: var(--text2); font-size: 12.5px; font-weight: 600;
+  cursor: pointer; transition: all .2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  text-align: center; touch-action: manipulation;
 }
-.mode-pill:hover { background: var(--surface3); color: var(--text); }
+.mode-pill:hover { background: rgba(255, 255, 255, 0.06); color: var(--text); }
 .mode-pill.active {
-  background: rgba(6,182,212,.15);
-  border-color: var(--accent); color: var(--accent);
+  background: var(--surface3);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 /* 1-Click Campus Presets */
