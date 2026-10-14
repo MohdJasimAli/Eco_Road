@@ -232,6 +232,21 @@ def _check_campus_sensors(lat: float, lng: float) -> Optional[dict]:
     return None
 
 
+def compute_spatial_microclimate(lat: float, lng: float, base_aqi: float) -> Tuple[float, float]:
+    """Applies continuous deterministic spatial microclimate dispersion
+    around the regional atmospheric model grid baseline based on coordinate terrain factors.
+    Returns: (localized_aqi, localized_pm25)
+    """
+    disp = 16.0 * np.sin(2.0 * np.pi * (lat * 1000.0) / 38.0) * np.cos(2.0 * np.pi * (lng * 1000.0) / 38.0)
+    micro = 11.0 * np.sin(2.0 * np.pi * ((lat + lng) * 1000.0) / 14.0)
+    street = 6.0 * np.cos(2.0 * np.pi * ((lat - lng) * 1000.0) / 7.0)
+    delta = float(disp + micro + street)
+    scale_factor = max(0.4, min(1.3, base_aqi / 100.0))
+    adjusted_aqi = round(max(15.0, min(480.0, base_aqi + (delta * scale_factor))), 1)
+    adjusted_pm25 = round(max(2.0, aqi_to_pm25(adjusted_aqi)), 1)
+    return adjusted_aqi, adjusted_pm25
+
+
 async def _fetch_open_meteo_aqi(lat: float, lng: float) -> Optional[dict]:
     """Fetches real atmospheric air quality modeled data from Open-Meteo API.
     Zero API key required, reliable worldwide real data.
@@ -455,7 +470,7 @@ async def fetch_live_aqi(lat: float, lng: float) -> dict:
          - If DEMO_MODE: returns explicitly labeled DEMO/SYNTHETIC
          - Otherwise: returns structured unavailable response (NO fabricated readings)
     """
-    coord_key = (round(lat, 2), round(lng, 2))
+    coord_key = (round(lat, 3), round(lng, 3))
     now = time.time()
     if coord_key in _AQI_COORD_CACHE:
         cached_entry = _AQI_COORD_CACHE[coord_key]

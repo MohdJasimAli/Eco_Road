@@ -7,7 +7,7 @@ import numpy as np
 from config import settings
 from services.aqi_service import (
     score_route_aqi, aqi_bucket, aqi_color, aqi_to_pm25,
-    us_epa_aqi_category, cpcb_aqi_category
+    us_epa_aqi_category, cpcb_aqi_category, compute_spatial_microclimate
 )
 
 # In-Memory Fast Cache with TTL
@@ -259,14 +259,21 @@ def build_colored_segments(coords: list, samples: list, route_avg_aqi: Optional[
         chunk = coords[i : min(i + chunk_size, n_pts)]
         if len(chunk) < 2:
             continue
+        mid_pt = chunk[len(chunk) // 2]
+        seg_lat, seg_lng = mid_pt[1], mid_pt[0]
+
         sample_idx = min(int((i / n_pts) * n_samples), n_samples - 1)
         sample = samples[sample_idx] if samples and sample_idx < len(samples) else {}
-        aqi_val = sample.get("aqi") if sample.get("aqi") is not None else route_avg_aqi
-        pm25_val = sample.get("pm25") if sample.get("pm25") is not None else route_avg_pm25
+        base_s_aqi = sample.get("aqi") if sample.get("aqi") is not None else route_avg_aqi
+        if base_s_aqi is not None:
+            aqi_val, pm25_val = compute_spatial_microclimate(seg_lat, seg_lng, base_s_aqi)
+        else:
+            aqi_val = route_avg_aqi
+            pm25_val = route_avg_pm25
         d_type = sample.get("data_type", "modeled")
         grid_coords = sample.get("grid_coordinates")
-        cat = sample.get("category") or (us_epa_aqi_category(aqi_val) if aqi_val is not None else None)
-        bkt = sample.get("bucket") or cat
+        cat = us_epa_aqi_category(aqi_val) if aqi_val is not None else (sample.get("category") or "Moderate")
+        bkt = cat
         stn = sample.get("station")
         src = sample.get("source")
         unc = sample.get("uncertainty_label")

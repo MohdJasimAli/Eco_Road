@@ -304,8 +304,20 @@ const Navigation = (() => {
 
       _onGPS({ lat: curr.lat, lng: curr.lng, heading: heading, accuracy: 5 });
 
+      // Active corridor segment detection for simulator progress
+      let activeSeg = null;
+      if (_route.colored_segments && _route.colored_segments.length > 0) {
+        const segIdx = Math.min(
+          _route.colored_segments.length - 1,
+          Math.floor((_simIndex / Math.max(1, _simCoords.length)) * _route.colored_segments.length)
+        );
+        activeSeg = _route.colored_segments[segIdx];
+      }
+      if (!activeSeg) {
+        activeSeg = _findActiveSegment(curr.lat, curr.lng);
+      }
+
       // Live Inhaled Mass increment using active segment PM2.5 and profile ventilation rate
-      const activeSeg = _findActiveSegment(curr.lat, curr.lng);
       const pm25Val = (activeSeg && activeSeg.pm25 != null) ? activeSeg.pm25 : (_route.avg_pm25 || 25.0);
       const vE = _getVentilationRate(_route.travel_mode || Routing.getMode(), _route.sensitivity);
       const dtMin = (intervalMs / 1000 / 60) * _simSpeed;
@@ -747,13 +759,15 @@ const Navigation = (() => {
 
         const activeSeg = _findActiveSegment(lat, lng);
         if (activeSeg) {
-          activeSeg.aqi = data.aqi;
-          if (data.pm25 != null) activeSeg.pm25 = data.pm25;
-          activeSeg.color = _navCurrentColor;
-          activeSeg.category = _navCurrentCat;
-          activeSeg.station = _navCurrentStation;
-          activeSeg.data_type = _navCurrentDataType;
-          activeSeg.grid_coordinates = _navCurrentGrid;
+          if (data.data_type === 'observed' || activeSeg.aqi == null) {
+            activeSeg.aqi = data.aqi;
+            if (data.pm25 != null) activeSeg.pm25 = data.pm25;
+            activeSeg.color = _navCurrentColor;
+            activeSeg.category = _navCurrentCat;
+            activeSeg.station = _navCurrentStation;
+            activeSeg.data_type = _navCurrentDataType;
+            activeSeg.grid_coordinates = _navCurrentGrid;
+          }
         }
       } else {
         if (_navCurrentAqi == null) {
