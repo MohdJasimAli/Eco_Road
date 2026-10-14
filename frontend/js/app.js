@@ -10,14 +10,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 2. Geocoding + autocomplete
   Geocoding.setup();
 
+  // 2b. Initialize 1-Click Campus Presets
+  Routing.initPresets();
+
+  // 2c. Check for shared route in URL parameters
+  Routing.initFromUrlParams();
+
   // 3. Prediction panel
   Prediction.init();
 
   // 4. Route tab buttons
   document.getElementById('btn-shortest')
-          .addEventListener('click', () => Routing.selectRoute('shortest'));
+          ?.addEventListener('click', () => Routing.selectRoute('shortest'));
   document.getElementById('btn-eco')
-          .addEventListener('click', () => Routing.selectRoute('eco'));
+          ?.addEventListener('click', () => Routing.selectRoute('eco'));
+  document.getElementById('btn-balanced')
+          ?.addEventListener('click', () => Routing.selectRoute('balanced'));
+
+  // 4b. Mobile Bottom Sheet Peek / Expand Toggle
+  const sheetHandle = document.querySelector('.sheet-handle');
+  const searchSheet = document.getElementById('search-sheet');
+  if (sheetHandle && searchSheet) {
+    sheetHandle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      searchSheet.classList.toggle('sheet-peek');
+    });
+    // Auto-expand sheet if user taps inside while peeked
+    searchSheet.addEventListener('click', () => {
+      if (searchSheet.classList.contains('sheet-peek')) {
+        searchSheet.classList.remove('sheet-peek');
+      }
+    });
+  }
 
   // 5. Start navigation
   document.getElementById('go-btn')
@@ -26,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 6. Clear destination
   document.getElementById('clear-dest-btn').addEventListener('click', () => {
     document.getElementById('dest-input').value = '';
-    document.getElementById('route-cards').style.display = 'none';
+    Routing.resetRouteUI();
     document.getElementById('header-mini').style.display = 'none';
     MapManager.clearRoutes();
     const s = Geocoding.getState();
@@ -65,5 +89,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const el = document.getElementById('model-badge');
     el.title       = 'API offline — start: uvicorn app:app --reload';
     el.textContent = '🔴';
+  }
+
+  // 9. Offline PWA Service Worker Registration
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.warn('Service worker registration note:', err);
+    });
   }
 });

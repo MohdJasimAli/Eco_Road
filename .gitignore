@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.pytest_cache/
 *.egg
 *.egg-info/
 dist/
@@ -29,14 +30,15 @@ ENV/
 !.env.example
 
 # ── Trained model files (large binaries) ─────────
-backend/models/*.pkl
 backend/models/*.pt
 backend/models/*.h5
 backend/models/*.pb
-backend/models/model_meta.json
 backend/models/dl_model_meta.json
-# Keep the models/ folder itself
-!backend/models/.gitkeep
+# Allow lightweight XGBoost model artifacts for seamless deployment
+!backend/models/xgb_aqi_model.pkl
+!backend/models/city_encoder.pkl
+!backend/models/feature_medians.pkl
+!backend/models/model_meta.json
 
 # ── Dataset files ─────────────────────────────────
 data/*.csv

@@ -31,9 +31,9 @@ class AQIPredictor:
             with open(os.path.join(settings.MODEL_DIR, "model_meta.json")) as f:
                 self.meta = json.load(f)
             self.loaded = True
-            print(f"✅ Model loaded: {self.meta.get('model_type','?')} R²={self.meta.get('r2','?')}")
-        except FileNotFoundError:
-            print("⚠  Model files not found — run: python ml/train.py")
+            print(f"[OK] Model loaded: {self.meta.get('model_type','?')} R2={self.meta.get('r2','?')}")
+        except Exception as e:
+            print("[INFO] Pre-trained model not found. Running in live routing and heuristics mode.")
 
     def predict(self, city: str, date_str: Optional[str], overrides: dict) -> dict:
         if not self.loaded:

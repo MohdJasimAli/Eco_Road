@@ -2,11 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>EcoNav — Clean Air Navigation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Eco_Road — Clean Air Smart Navigation</title>
 
+<!-- Leaflet CSS & JS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0d1117" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
 <link rel="stylesheet" href="css/main.css" />
 </head>
@@ -20,13 +26,13 @@
     <div class="logo">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
         <path d="M12 2C8 2 4 5.5 4 10c0 6 8 12 8 12s8-6 8-12c0-4.5-4-8-8-8z" fill="url(#lg)"/>
-        <circle cx="12" cy="10" r="3" fill="white" opacity=".9"/>
+        <circle cx="12" cy="10" r="3" fill="white" opacity=".95"/>
         <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#06b6d4"/>
-          <stop offset="100%" stop-color="#22c55e"/>
+          <stop offset="0%" stop-color="#0284c7"/>
+          <stop offset="100%" stop-color="#059669"/>
         </linearGradient></defs>
       </svg>
-      EcoNav
+      <span>Eco_Road</span>
     </div>
   </div>
   <div class="header-center" id="header-mini" style="display:none">
@@ -35,21 +41,25 @@
     <span id="mini-dest"></span>
   </div>
   <div class="header-right">
-    <div class="aqi-pill" id="header-aqi-pill">
+    <div class="aqi-pill" id="header-aqi-pill" title="Live Ambient Air Quality Index">
       <div class="aqi-dot" id="header-aqi-dot"></div>
       <span id="header-aqi-text">Fetching AQI…</span>
     </div>
-    <div class="model-badge" id="model-badge" title="Model status">⚙</div>
+    <div class="health-mode-pill" id="health-mode-toggle" title="Toggle Standard / Asthma Health Profile" onclick="Routing.toggleSensitivity()">
+      <span id="health-mode-icon">💚</span>
+      <span id="health-mode-text">Standard</span>
+    </div>
+    <div class="model-badge" id="model-badge" title="Model Status">⋯</div>
   </div>
 </header>
 
 <!-- ══════════════════════════════════════
-     MAP
+     FULL-SCREEN MAP
 ══════════════════════════════════════ -->
 <div id="map"></div>
 
-<!-- Re-centre button (hidden until user pans) -->
-<button id="recentre-btn" onclick="Navigation.recentreOnUser()">
+<!-- Re-centre button (appears when user pans during tracking) -->
+<button id="recentre-btn" onclick="Navigation.recentreOnUser()" title="Re-centre map on current location">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
     <circle cx="12" cy="12" r="10"/>
     <circle cx="12" cy="12" r="3" fill="currentColor"/>
@@ -61,102 +71,227 @@
   Re-centre
 </button>
 
+<!-- Floating Map Action Controls -->
+<div id="map-floating-controls">
+  <button id="compass-btn" onclick="MapManager.resetNorth()" title="Align map to North">
+    <div id="compass-needle">▲</div>
+  </button>
+  <button id="tile-toggle-btn" onclick="MapManager.toggleMapTheme()" title="Basemap: OpenStreetMap Standard">
+    🗺️
+  </button>
+  <button id="aqi-layer-toggle-btn" class="active" onclick="MapManager.toggleAqiLayer()" title="Toggle Air Quality Overlays">
+    🌿
+  </button>
+</div>
+
+<!-- AQI Legend Bar (Collapsible) -->
+<div id="aqi-legend" class="aqi-legend-box" title="Air Quality Index Scale">
+  <div class="legend-title">AQI Index Scale</div>
+  <div class="legend-bar">
+    <span class="l-seg" style="background:#00e400" title="Good (0-50)">Good</span>
+    <span class="l-seg" style="background:#a8e05f" title="Satisfactory (51-100)">Fair</span>
+    <span class="l-seg" style="background:#fdd74b" title="Moderate (101-200)">Mod</span>
+    <span class="l-seg" style="background:#fe9b57" title="Poor (201-300)">Poor</span>
+    <span class="l-seg" style="background:#fe6a69" title="Very Poor (301-400)">V.Poor</span>
+    <span class="l-seg" style="background:#a97abc" title="Severe (401-500)">Sev</span>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════
-     SEARCH SHEET
+     SEARCH & ROUTE PLANNER PANEL
 ══════════════════════════════════════ -->
 <div id="search-sheet" class="sheet">
   <div class="sheet-handle"></div>
 
+  <!-- Travel Mode Selector Tabs -->
+  <div class="travel-mode-bar">
+    <button class="mode-pill active" id="mode-foot" onclick="Routing.setMode('foot')" title="Pedestrian Walk">
+      🚶 Walk
+    </button>
+    <button class="mode-pill" id="mode-bike" onclick="Routing.setMode('bike')" title="Cycling Path">
+      🚲 Cycle
+    </button>
+    <button class="mode-pill" id="mode-driving" onclick="Routing.setMode('driving')" title="Vehicle Road Route">
+      🚗 Drive
+    </button>
+  </div>
+
+  <!-- Inputs Container -->
   <div class="search-inputs">
+    <!-- Origin Row -->
     <div class="input-row">
-      <div class="route-dot blue"></div>
-      <input type="text" id="origin-input" placeholder="Your location" autocomplete="off"/>
-      <button class="icon-btn" id="use-location-btn" title="Use my location">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
-          <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
-          <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
-        </svg>
+      <div class="route-dot blue" title="Start Point"></div>
+      <input type="text" id="origin-input" placeholder="Search start location (or coords)..." autocomplete="off"/>
+      <div class="input-actions-inline">
+        <button class="icon-btn" id="use-location-btn" title="Use My Current GPS Location">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+            <line x1="12" y1="2"  x2="12" y2="5"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="2"  y1="12" x2="5"  y2="12"/>
+            <line x1="19" y1="12" x2="22" y2="12"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="clear-origin-btn" title="Clear Start">✕</button>
+      </div>
+    </div>
+
+    <!-- Actions Row: Swap & Add Stop -->
+    <div class="input-actions-bar">
+      <button class="action-text-btn" id="swap-locations-btn" title="Swap Start and Destination">
+        ⇅ Swap
+      </button>
+      <button class="action-text-btn" id="add-waypoint-btn" title="Add intermediate stop">
+        ➕ Add stop
       </button>
     </div>
-    <div class="input-connector-line"></div>
+
+    <!-- Dynamic Waypoints Container -->
+    <div id="waypoints-container"></div>
+
+    <!-- Destination Row -->
     <div class="input-row">
-      <div class="route-dot green"></div>
-      <input type="text" id="dest-input" placeholder="Choose destination" autocomplete="off"/>
-      <button class="icon-btn" id="clear-dest-btn" title="Clear">✕</button>
+      <div class="route-dot green" title="Destination"></div>
+      <input type="text" id="dest-input" placeholder="Search destination (or coords)..." autocomplete="off"/>
+      <button class="icon-btn" id="clear-dest-btn" title="Clear Destination">✕</button>
     </div>
   </div>
 
+  <!-- 1-Click Campus Demos & Shortcuts -->
+  <!-- 1-Click Campus Demos & Shortcuts -->
+  <div class="presets-section" id="presets-section">
+    <div class="presets-label">⚡ 1-Click Demos & Campus Shortcuts:</div>
+    <div class="presets-row" id="presets-row"></div>
+  </div>
+
+  <!-- Autocomplete & Search History Dropdown -->
   <div id="autocomplete-panel" style="display:none">
     <div class="autocomplete-list" id="autocomplete-list"></div>
   </div>
 
-  <!-- Route cards -->
+  <!-- Route Comparison & Cards -->
   <div id="route-cards" style="display:none">
     <div class="route-toggle">
-      <button class="route-btn active blue-route" id="btn-shortest" data-route="shortest">
+      <button class="route-btn active blue-route" id="btn-shortest" data-route="shortest" onclick="Routing.selectRoute('shortest')">
         <span class="rbtn-icon">🔵</span>
         <div><div class="rbtn-title">Shortest</div><div class="rbtn-sub" id="sub-shortest">—</div></div>
       </button>
-      <button class="route-btn" id="btn-eco" data-route="eco">
+      <button class="route-btn" id="btn-eco" data-route="eco" onclick="Routing.selectRoute('eco')">
         <span class="rbtn-icon">🟢</span>
         <div><div class="rbtn-title">Clean Air</div><div class="rbtn-sub" id="sub-eco">—</div></div>
       </button>
+      <button class="route-btn" id="btn-balanced" data-route="balanced" onclick="Routing.selectRoute('balanced')">
+        <span class="rbtn-icon">⚖️</span>
+        <div><div class="rbtn-title">Balanced</div><div class="rbtn-sub" id="sub-balanced">—</div></div>
+      </button>
     </div>
 
+    <!-- Primary Action Buttons: Start GPS Nav + Simulator -->
+    <div class="nav-action-buttons" id="nav-action-buttons">
+      <button class="go-btn" id="go-btn" onclick="Navigation.start()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+          <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+        </svg>
+        <span id="go-btn-text">Start GPS Navigation</span>
+      </button>
+
+      <div class="sim-btn-group">
+        <button class="sim-btn" id="sim-btn" onclick="Navigation.startSimulation(1)" title="Simulate trip for demonstration">
+          🎮 Demo Walk (1x)
+        </button>
+        <button class="sim-speed-btn" onclick="Navigation.startSimulation(2)" title="2x Speed">2x</button>
+        <button class="sim-speed-btn" onclick="Navigation.startSimulation(5)" title="5x Fast Simulation">5x</button>
+      </div>
+    </div>
+
+    <!-- Route Details Card -->
     <div class="route-detail-card" id="route-detail-card">
       <div class="route-stats">
         <div class="stat"><div class="stat-val" id="stat-dist">—</div><div class="stat-lbl">Distance</div></div>
         <div class="stat"><div class="stat-val" id="stat-dur">—</div><div class="stat-lbl">Duration</div></div>
         <div class="stat"><div class="stat-val" id="stat-aqi">—</div><div class="stat-lbl">Avg AQI</div></div>
+        <div class="stat"><div class="stat-val" id="stat-pm25">—</div><div class="stat-lbl">Inhaled PM2.5</div></div>
+      </div>
+      <div class="route-rationale-row" id="route-rationale-row">
+        <span class="rationale-tag" id="route-rationale-tag">Recommended</span>
+        <span class="rationale-text" id="route-rationale-text">—</span>
       </div>
       <div class="route-aqi-badge" id="route-aqi-badge"></div>
     </div>
 
-    <button class="go-btn" id="go-btn">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="white">
-        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-      </svg>
-      Start Navigation
-    </button>
+    <!-- Respiratory Health Exposure Savings Banner -->
+    <div class="health-savings-card" id="health-savings-card">
+      <div class="savings-header">
+        <span class="savings-icon">🫁</span>
+        <span class="savings-title" id="savings-title">Respiratory Exposure Savings</span>
+      </div>
+      <div class="savings-body" id="savings-body">
+        Select route to compare inhaled PM2.5 dosage
+      </div>
+    </div>
+
+    <!-- 6-Hour Pollution Forecast Timeline Card -->
+    <div class="route-trend-card" id="route-trend-card" style="display:none">
+      <div class="trend-header">
+        <span>⏰ Cleanest Window to Travel (6h Forecast)</span>
+        <span class="trend-badge" id="trend-badge">Checking…</span>
+      </div>
+      <div class="trend-recommendation" id="trend-recommendation"></div>
+      <div class="trend-timeline" id="trend-timeline"></div>
+    </div>
+
+    <!-- Auxiliary Action Buttons (Compare & Share) -->
+    <div class="route-aux-buttons">
+      <button class="compare-btn" id="compare-btn" onclick="Routing.openComparisonModal()" title="View side-by-side health metrics and grades">
+        📊 Health Grades
+      </button>
+      <button class="share-btn" id="share-btn" onclick="Routing.shareRoute()" title="Copy shareable link for friends">
+        🔗 Share Clean Route
+      </button>
+    </div>
   </div>
 
-  <!-- AQI Prediction -->
+  <!-- Next-Day AQI ML Prediction Panel Accordion -->
   <div class="panel-toggle" id="pred-toggle" onclick="togglePredPanel()">
-    <span>🔮 AQI Forecast</span>
+    <span>🔮 Next-Day AQI Forecast (ML Engine)</span>
     <span class="chevron" id="pred-chevron">▾</span>
   </div>
   <div id="pred-panel" style="display:none"></div>
 </div>
 
 <!-- ══════════════════════════════════════
-     NAVIGATION OVERLAY
-     (exactly like the screenshot you sent)
+     LIVE GOOGLE MAPS NAVIGATION OVERLAY
 ══════════════════════════════════════ -->
 <div id="nav-overlay" style="display:none">
 
-  <!-- 1. Main instruction (green bar like Google Maps) -->
+  <!-- 1. Top Turn Banner (Google Maps Emerald Green Bar) -->
   <div id="nav-instr-bar">
     <div id="nav-maneuver-icon">↑</div>
     <div id="nav-instr-center">
-      <div id="nav-instruction-text">Preparing…</div>
-      <div id="nav-road-bar"></div>
+      <div id="nav-instruction-text">Starting navigation…</div>
+      <div id="nav-road-bar">Road Pathway</div>
     </div>
     <div id="nav-dist-badge">—</div>
   </div>
 
-  <!-- 2. "Then →" preview bar -->
-  <div id="nav-then-bar">Then…</div>
+  <!-- 2. "Then →" secondary preview bar -->
+  <div id="nav-then-bar">Then continue straight…</div>
 
-  <!-- 3. Right-side floating controls (like Google Maps) -->
+  <!-- 3. In-Route Hotspot Alert banner -->
+  <div id="nav-hotspot-alert" style="display:none">
+    <span class="alert-icon">⚠️</span>
+    <div style="flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <span id="nav-hotspot-text">Approaching High Pollution Zone</span>
+      <button id="nav-detour-btn" onclick="Navigation.applyCleanDetour()" title="Reroute around this pollution hotspot">
+        🌿 Avoid Hotspot
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Right-side floating controls -->
   <div id="nav-side-controls">
-    <button class="nav-fab" id="nav-search-fab" title="Search along route">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-    </button>
-    <button class="nav-fab" id="nav-voice-btn" onclick="Navigation.toggleMute()">🔊</button>
-    <button class="nav-fab" id="nav-steps-fab" onclick="Navigation.toggleSteps()" title="Steps">
+    <button class="nav-fab" id="nav-voice-btn" onclick="Navigation.toggleMute()" title="Toggle Voice Guidance">🔊</button>
+    <button class="nav-fab" id="nav-steps-fab" onclick="Navigation.toggleSteps()" title="Step-by-step directions">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="3" y1="6"  x2="21" y2="6"/>
         <line x1="3" y1="12" x2="21" y2="12"/>
@@ -165,22 +300,26 @@
     </button>
   </div>
 
-  <!-- 4. Bottom HUD (ETA · distance · AQI + X and route switch) -->
+  <!-- 5. Bottom HUD (ETA · distance · AQI + X and route switch) -->
   <div id="nav-bottom-bar">
-    <button id="nav-exit-btn" onclick="Navigation.stop()">✕</button>
+    <button id="nav-exit-btn" onclick="Navigation.stop()" title="Exit Navigation">✕</button>
     <div id="nav-hud-center">
-      <div id="hud-duration-big" class="hud-big"></div>
+      <div id="hud-duration-big" class="hud-big">—</div>
       <div id="hud-detail-row">
         <span id="hud-dist">—</span>
         <span class="hud-dot">•</span>
         <span id="hud-eta">—</span>
+        <span class="hud-dot">•</span>
+        <span id="hud-mode-indicator">🚶 Walking</span>
       </div>
       <div id="hud-aqi-row">
-        <span id="hud-aqi">—</span>
+        <span id="hud-aqi">AQI —</span>
         <span id="hud-aqi-bucket"></span>
+        <span class="hud-dot">•</span>
+        <span id="hud-live-dose">Dosage: 0.00 µg</span>
       </div>
     </div>
-    <button id="nav-route-switch-btn" title="Switch route">
+    <button id="nav-route-switch-btn" onclick="Navigation.switchRouteLive()" title="Switch Route">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <polyline points="16 3 21 8 16 13"/><line x1="21" y1="8" x2="3" y2="8"/>
         <polyline points="8 21 3 16 8 11"/><line x1="3" y1="16" x2="21" y2="16"/>
@@ -191,18 +330,38 @@
   <!-- Progress bar -->
   <div id="nav-progress-bar"><div id="nav-progress-fill"></div></div>
 
-  <!-- 5. Step list panel (slide up on tap) -->
+  <!-- 6. Step list panel (pull-up sheet) -->
   <div id="nav-steps-panel">
     <div class="steps-handle" onclick="Navigation.toggleSteps()"></div>
     <div id="nav-steps-list"></div>
   </div>
 </div>
 
-<!-- Toast -->
+<!-- ══════════════════════════════════════
+     HEALTH ANALYTICS COMPARISON MODAL
+══════════════════════════════════════ -->
+<div id="compare-modal" class="modal-backdrop" style="display:none" onclick="Routing.closeComparisonModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>📊 Route Health Impact Comparison</span>
+      </div>
+      <button class="modal-close-btn" onclick="Routing.closeComparisonModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-comparison-content">
+      <!-- Injected dynamically by routing.js -->
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notifications -->
 <div id="toast"></div>
 
+<!-- App Scripts -->
 <script src="js/config.js"></script>
 <script src="js/utils.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/campus_presets.js"></script>
 <script src="js/map.js"></script>
 <script src="js/geocoding.js"></script>
 <script src="js/routing.js"></script>

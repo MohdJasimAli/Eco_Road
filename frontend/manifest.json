@@ -1,0 +1,17 @@
+{
+  "name": "Eco_Road: Clean-Air Campus Navigation",
+  "short_name": "Eco_Road",
+  "description": "Student-centric clean air pedestrian navigation with live turn-by-turn guidance and PM2.5 lung exposure savings.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2310b981' d='M12 2C8 2 4 5.5 4 10c0 6 8 12 8 12s8-6 8-12c0-4.5-4-8-8-8z'/><circle cx='12' cy='10' r='3' fill='white'/></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
