@@ -46,8 +46,16 @@ app.add_middleware(
 async def add_cache_control_headers(request, call_next):
     response = await call_next(request)
     path = request.url.path
-    if path in ("/", "/index.html", "/sw.js", "/manifest.json") or path.endswith(".html") or path.endswith("sw.js"):
-        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    if (
+        path in ("/", "/index.html", "/sw.js", "/manifest.json")
+        or path.endswith(".html")
+        or path.endswith(".js")
+        or path.endswith(".css")
+        or path.endswith(".json")
+    ):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     return response
 
 app.include_router(geocode_router)

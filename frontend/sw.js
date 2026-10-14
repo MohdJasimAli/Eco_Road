@@ -3,7 +3,7 @@
 // Member 1 (Hours 08–10 Hardening)
 // ═══════════════════════════════════════════════
 
-const CACHE_NAME = 'ecoroad-v2-osm';
+const CACHE_NAME = 'ecoroad-v3-nav-fix-20261014';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -202,7 +202,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 9. Offline PWA Service Worker Registration
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      reg.update();
+    }).catch(err => {
       console.warn('Service worker registration note:', err);
     });
   }
