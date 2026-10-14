@@ -624,11 +624,26 @@ const Geocoding = (() => {
       _setupInputListener(document.getElementById('origin-input'), 'origin');
       _setupInputListener(document.getElementById('dest-input'),   'dest');
 
-      document.getElementById('use-location-btn')?.addEventListener('click', useMyLocation);
-      document.getElementById('clear-origin-btn')?.addEventListener('click', clearOrigin);
-      document.getElementById('clear-dest-btn')?.addEventListener('click', clearDest);
-      document.getElementById('swap-locations-btn')?.addEventListener('click', swapOriginAndDest);
-      document.getElementById('add-waypoint-btn')?.addEventListener('click', () => addWaypoint());
+      document.getElementById('use-location-btn')?.addEventListener('click', () => {
+        if (typeof Utils !== 'undefined') Utils.haptic('medium');
+        useMyLocation();
+      });
+      document.getElementById('clear-origin-btn')?.addEventListener('click', () => {
+        if (typeof Utils !== 'undefined') Utils.haptic('light');
+        clearOrigin();
+      });
+      document.getElementById('clear-dest-btn')?.addEventListener('click', () => {
+        if (typeof Utils !== 'undefined') Utils.haptic('light');
+        clearDest();
+      });
+      document.getElementById('swap-locations-btn')?.addEventListener('click', () => {
+        if (typeof Utils !== 'undefined') Utils.haptic('medium');
+        swapOriginAndDest();
+      });
+      document.getElementById('add-waypoint-btn')?.addEventListener('click', () => {
+        if (typeof Utils !== 'undefined') Utils.haptic('light');
+        addWaypoint();
+      });
 
       // Close autocomplete on click outside
       document.addEventListener('click', (e) => {

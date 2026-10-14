@@ -18,6 +18,7 @@ const Routing = (() => {
   // ── Mode Switcher (Instant UI with AbortController) ─
   function setMode(newMode) {
     if (!['foot', 'bike', 'driving'].includes(newMode)) return;
+    if (typeof Utils !== 'undefined') Utils.haptic('light');
     _mode = newMode;
     ['foot', 'bike', 'driving'].forEach(m => {
       const btn = document.getElementById(`mode-${m}`);
@@ -37,6 +38,7 @@ const Routing = (() => {
 
   // ── Health Sensitivity Toggle (Standard / Asthma) ─
   function toggleSensitivity() {
+    if (typeof Utils !== 'undefined') Utils.haptic('medium');
     _sensitivity = (_sensitivity === 'standard') ? 'asthma' : 'standard';
     const pill = document.getElementById('health-mode-toggle');
     const icon = document.getElementById('health-mode-icon');
@@ -328,6 +330,9 @@ const Routing = (() => {
     if (cards) {
       cards.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+    if (typeof BottomSheet !== 'undefined') {
+      BottomSheet.snapTo('half');
+    }
   }
 
   function resetRouteUI() {
@@ -336,6 +341,9 @@ const Routing = (() => {
     if (cards)   cards.style.display   = 'none';
     if (presets) presets.style.display = 'block';
     _routeData = null;
+    if (typeof BottomSheet !== 'undefined') {
+      BottomSheet.snapTo('half');
+    }
   }
 
   // ── Initialize Presets ────────────────────────
@@ -350,6 +358,7 @@ const Routing = (() => {
       chip.textContent = p.name;
       chip.title = p.desc;
       chip.onclick = () => {
+        if (typeof Utils !== 'undefined') Utils.haptic('medium');
         Geocoding.setOriginDirect(p.origin.lat, p.origin.lng, p.origin.name);
         Geocoding.setDestDirect(p.dest.lat, p.dest.lng, p.dest.name);
         findRoutes(p.origin, p.dest);
@@ -360,6 +369,7 @@ const Routing = (() => {
 
   // ── Comparison Modal ──────────────────────────
   function openComparisonModal() {
+    if (typeof Utils !== 'undefined') Utils.haptic('light');
     if (!_routeData) {
       Utils.toast('⚠️ Calculate a route first to view health comparison');
       return;

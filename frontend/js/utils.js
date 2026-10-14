@@ -110,4 +110,15 @@ const Utils = {
   geoJsonToLatLng(geoJson) {
     return geoJson.coordinates.map(c => [c[1], c[0]]);
   },
+
+  // ── Mobile Haptic Feedback ──────────────────
+  haptic(pattern = 'light') {
+    if (typeof navigator === 'undefined' || !navigator.vibrate) return;
+    try {
+      if (pattern === 'light') navigator.vibrate(10);
+      else if (pattern === 'medium') navigator.vibrate(22);
+      else if (pattern === 'success') navigator.vibrate([12, 45, 18]);
+      else if (pattern === 'warning') navigator.vibrate([35, 50, 35]);
+    } catch (_) {}
+  },
 };

@@ -73,13 +73,16 @@
 
 <!-- Floating Map Action Controls -->
 <div id="map-floating-controls">
-  <button id="compass-btn" onclick="MapManager.resetNorth()" title="Align map to North">
+  <button id="my-location-btn" onclick="Navigation.recentreOnUser(); if (typeof Utils !== 'undefined') Utils.haptic('medium');" title="Re-centre on My Location">
+    🎯
+  </button>
+  <button id="compass-btn" onclick="MapManager.resetNorth(); if (typeof Utils !== 'undefined') Utils.haptic('light');" title="Align map to North">
     <div id="compass-needle">▲</div>
   </button>
-  <button id="tile-toggle-btn" onclick="MapManager.toggleMapTheme()" title="Basemap: OpenStreetMap Standard">
+  <button id="tile-toggle-btn" onclick="MapManager.toggleMapTheme(); if (typeof Utils !== 'undefined') Utils.haptic('light');" title="Basemap: OpenStreetMap Standard">
     🗺️
   </button>
-  <button id="aqi-layer-toggle-btn" class="active" onclick="MapManager.toggleAqiLayer()" title="Toggle Air Quality Overlays">
+  <button id="aqi-layer-toggle-btn" class="active" onclick="MapManager.toggleAqiLayer(); if (typeof Utils !== 'undefined') Utils.haptic('light');" title="Toggle Air Quality Overlays">
     🌿
   </button>
 </div>
@@ -100,8 +103,10 @@
 <!-- ══════════════════════════════════════
      SEARCH & ROUTE PLANNER PANEL
 ══════════════════════════════════════ -->
-<div id="search-sheet" class="sheet">
-  <div class="sheet-handle"></div>
+<div id="search-sheet" class="sheet sheet-snap-half">
+  <div class="sheet-drag-area" id="sheet-drag-area" title="Drag to expand or minimize">
+    <div class="sheet-handle"></div>
+  </div>
 
   <!-- Travel Mode Selector Tabs -->
   <div class="travel-mode-bar">

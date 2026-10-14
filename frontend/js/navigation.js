@@ -373,7 +373,12 @@ const Navigation = (() => {
     if (alertBanner) alertBanner.style.display = 'none';
 
     const sheet = document.getElementById('search-sheet');
-    if (sheet) sheet.classList.remove('sheet-hidden');
+    if (sheet) {
+      sheet.classList.remove('sheet-hidden');
+      if (typeof BottomSheet !== 'undefined') {
+        BottomSheet.snapTo('half');
+      }
+    }
 
     const recentreBtn = document.getElementById('recentre-btn');
     if (recentreBtn) recentreBtn.classList.remove('visible');
@@ -405,6 +410,7 @@ const Navigation = (() => {
       _announcedSteps.add(_stepIndex);
       const distLabel = distToTurn < 35 ? 'In a few metres' : `In ${Math.round(distToTurn / 10) * 10} metres`;
       if (typeof AudioEngine !== 'undefined') AudioEngine.playTurnChime();
+      if (typeof Utils !== 'undefined') Utils.haptic('medium');
       _speak(`${distLabel}, ${step.instruction}`);
     }
 
@@ -528,6 +534,7 @@ const Navigation = (() => {
 
   function _advanceToEnd() {
     if (typeof AudioEngine !== 'undefined') AudioEngine.playArrivalChime();
+    if (typeof Utils !== 'undefined') Utils.haptic('success');
     _speak('You have arrived at your destination. Clean air journey complete.');
     MapManager.clearTurnMarker();
     Utils.toast('🏁 Destination Reached!');
